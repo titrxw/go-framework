@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	server "github.com/titrxw/go-framework/src/Http"
+	response "github.com/titrxw/go-framework/src/Http/Response"
 )
 
 type MiddlewareAbstract struct {
-	server.Response
+	response.Response
 }
