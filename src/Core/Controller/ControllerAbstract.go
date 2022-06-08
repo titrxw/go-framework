@@ -1,7 +1,7 @@
 package controller
 
 import (
-	server "github.com/titrxw/go-framework/src/Core/Server"
+	server "github.com/titrxw/go-framework/src/Http"
 )
 
 type ControllerAbstract struct {

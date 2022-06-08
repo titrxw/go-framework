@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	session "github.com/titrxw/go-framework/src/Core/Session"
+	"github.com/titrxw/go-framework/src/Http/Session"
 	"net/http"
 )
 

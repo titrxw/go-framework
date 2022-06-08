@@ -1,11 +1,11 @@
 package exception
 
 import (
+	"bytes"
 	"fmt"
-	"io"
-
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"io/ioutil"
+	"runtime"
 )
 
 var (
@@ -14,16 +14,6 @@ var (
 	dot       = []byte(".")
 	slash     = []byte("/")
 )
-
-type ExceptionRecoverLogger struct {
-	io.Writer
-	HandlerExceptions *HandlerExceptions
-}
-
-func (this *ExceptionRecoverLogger) Write(p []byte) (n int, err error) {
-	this.HandlerExceptions.GetExceptionHandler().Reporter(this.HandlerExceptions.Logger, fmt.Errorf("%v", err))
-	return len(p), nil
-}
 
 type HandlerExceptions struct {
 	ExceptionHandler ExceptionHandlerInterface
@@ -41,17 +31,72 @@ func (this *HandlerExceptions) GetExceptionHandler() ExceptionHandlerInterface {
 	return this.ExceptionHandler
 }
 
-func (this *HandlerExceptions) newCustomRecovery() gin.HandlerFunc {
-	return gin.CustomRecoveryWithWriter(&ExceptionRecoverLogger{
-		HandlerExceptions: this,
-	}, func(ctx *gin.Context, err interface{}) {
-		this.GetExceptionHandler().Handle(ctx, fmt.Errorf("%v", err))
-	})
+func (this *HandlerExceptions) RegisterExceptionHandle() func() {
+	return func() {
+		if err := recover(); err != nil {
+			this.GetExceptionHandler().Reporter(this.Logger, fmt.Errorf("%v", err), string(this.Stack(4)))
+			this.GetExceptionHandler().Handle(fmt.Errorf("%v", err), string(this.Stack(4)))
+		}
+	}
 }
 
-func (this *HandlerExceptions) RegisterExceptionHandle(ctx *gin.Context) {
-	if ctx == nil {
-		ctx = &gin.Context{}
+//以下代码来自gin recover
+func (this *HandlerExceptions) Stack(skip int) []byte {
+	buf := new(bytes.Buffer) // the returned data
+	// As we loop, we open files and read them. These variables record the currently
+	// loaded file.
+	var lines [][]byte
+	var lastFile string
+	for i := skip; ; i++ { // Skip the expected number of frames
+		pc, file, line, ok := runtime.Caller(i)
+		if !ok {
+			break
+		}
+		// Print this much at least.  If we can't find the source, it won't show.
+		fmt.Fprintf(buf, "%s:%d (0x%x)\n", file, line, pc)
+		if file != lastFile {
+			data, err := ioutil.ReadFile(file)
+			if err != nil {
+				continue
+			}
+			lines = bytes.Split(data, []byte{'\n'})
+			lastFile = file
+		}
+		fmt.Fprintf(buf, "\t%s: %s\n", this.function(pc), this.source(lines, line))
 	}
-	this.newCustomRecovery()(ctx)
+	return buf.Bytes()
+}
+
+// source returns a space-trimmed slice of the n'th line.
+func (this *HandlerExceptions) source(lines [][]byte, n int) []byte {
+	n-- // in stack trace, lines are 1-indexed but our array is 0-indexed
+	if n < 0 || n >= len(lines) {
+		return dunno
+	}
+	return bytes.TrimSpace(lines[n])
+}
+
+// function returns, if possible, the name of the function containing the PC.
+func (this *HandlerExceptions) function(pc uintptr) []byte {
+	fn := runtime.FuncForPC(pc)
+	if fn == nil {
+		return dunno
+	}
+	name := []byte(fn.Name())
+	// The name includes the path name to the package, which is unnecessary
+	// since the file name is already included.  Plus, it has center dots.
+	// That is, we see
+	//	runtime/debug.*T·ptrmethod
+	// and want
+	//	*T.ptrmethod
+	// Also the package path might contains dot (e.g. code.google.com/...),
+	// so first eliminate the path prefix
+	if lastSlash := bytes.LastIndex(name, slash); lastSlash >= 0 {
+		name = name[lastSlash+1:]
+	}
+	if period := bytes.Index(name, dot); period >= 0 {
+		name = name[period+1:]
+	}
+	name = bytes.Replace(name, centerDot, dot, -1)
+	return name
 }

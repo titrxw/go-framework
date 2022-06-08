@@ -1,18 +1,6 @@
-package core
+package app
 
 import (
-	appconfig "github.com/titrxw/go-framework/src/Core/Config"
-	console "github.com/titrxw/go-framework/src/Core/Console"
-	database "github.com/titrxw/go-framework/src/Core/Database"
-	exception "github.com/titrxw/go-framework/src/Core/Exception"
-	logger "github.com/titrxw/go-framework/src/Core/Logger"
-	provider "github.com/titrxw/go-framework/src/Core/Provider"
-	redis "github.com/titrxw/go-framework/src/Core/Redis"
-	session "github.com/titrxw/go-framework/src/Core/Session"
-	"net/http"
-
-	"github.com/alexedwards/scs/mysqlstore"
-	"github.com/alexedwards/scs/v2"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
@@ -21,6 +9,13 @@ import (
 	"github.com/golobby/container/v3/pkg/container"
 	"github.com/gookit/config/v2"
 	"github.com/gookit/config/v2/yaml"
+	appconfig "github.com/titrxw/go-framework/src/Core/Config"
+	console "github.com/titrxw/go-framework/src/Core/Console"
+	database "github.com/titrxw/go-framework/src/Core/Database"
+	exception "github.com/titrxw/go-framework/src/Core/Exception"
+	logger "github.com/titrxw/go-framework/src/Core/Logger"
+	provider "github.com/titrxw/go-framework/src/Core/Provider"
+	redis "github.com/titrxw/go-framework/src/Core/Redis"
 )
 
 type App struct {
@@ -31,7 +26,6 @@ type App struct {
 	RedisFactory      *redis.RedisFactory
 	DbFactory         *database.DatabaseFactory
 	LoggerFactory     *logger.LoggerFactory
-	Session           *session.Session
 	ProviderManager   *provider.ProviderManager
 	Translator        ut.Translator
 	Console           *console.Console
@@ -41,11 +35,11 @@ func NewApp() *App {
 	return &App{}
 }
 
-func (this *App) registerExceptionHandler() {
+func (this *App) registerExceptionHandler() func() {
 	this.HandlerExceptions = &exception.HandlerExceptions{
 		Logger: this.LoggerFactory.Channel("default"),
 	}
-	this.HandlerExceptions.RegisterExceptionHandle(nil)
+	return this.HandlerExceptions.RegisterExceptionHandle()
 }
 
 func (this *App) InitConfig(obj interface{}) {
@@ -93,53 +87,7 @@ func (this *App) registerDb() {
 	this.DbFactory.Register(this.Config.DatabaseMap)
 }
 
-func (this *App) registerSession() {
-	this.Session = &session.Session{
-		SessionManager: *scs.New(),
-	}
-	this.Session.ErrorFunc = func(writer http.ResponseWriter, request *http.Request, err error) {
-
-	}
-	if this.Config.Session.Lifetime > 0 {
-		this.Session.Lifetime = this.Config.Session.Lifetime
-	}
-	if this.Config.Cookie.Name != "" {
-		this.Session.Cookie.Name = this.Config.Cookie.Name
-	}
-	if this.Config.Cookie.Domain != "" {
-		this.Session.Cookie.Domain = this.Config.Cookie.Domain
-	}
-	if this.Config.Cookie.Path != "" {
-		this.Session.Cookie.Path = this.Config.Cookie.Path
-	}
-	this.Session.Cookie.HttpOnly = this.Config.Cookie.HttpOnly
-	this.Session.Cookie.Persist = this.Config.Cookie.Persist
-	this.Session.Cookie.Secure = this.Config.Cookie.Secure
-	if this.Config.Cookie.SameSite == "Lax" {
-		this.Session.Cookie.SameSite = http.SameSiteLaxMode
-	} else if this.Config.Cookie.SameSite == "Strict" {
-		this.Session.Cookie.SameSite = http.SameSiteStrictMode
-	} else if this.Config.Cookie.SameSite == "None" {
-		this.Session.Cookie.SameSite = http.SameSiteNoneMode
-	} else {
-		this.Session.Cookie.SameSite = http.SameSiteDefaultMode
-	}
-
-	this.Session.SetStorageResolver(func() scs.Store {
-		sessionDb := this.Config.Session.DbConnection
-		if sessionDb == "" {
-			sessionDb = "default"
-		}
-		db, err := this.DbFactory.Channel(sessionDb).DB()
-		if err != nil {
-			panic(err)
-		}
-
-		return mysqlstore.New(db)
-	})
-}
-
-func (this *App) RegisterValidation() {
+func (this *App) registerValidation() {
 	uni := ut.New(zh.New())
 	lang := this.Config.App.Lang
 	if lang == "" {
@@ -170,19 +118,18 @@ func (this *App) registerProvider() {
 	this.ProviderManager = providerManager
 }
 
-func (this *App) RegisterConsole() {
+func (this *App) registerConsole() {
 	this.Console = console.NewConsole()
 }
 
 func (this *App) Bootstrap() {
-	this.RegisterConsole()
+	this.registerConsole()
 	this.registerConfig()
 	this.registerContainer()
 	this.registerLogger()
-	this.registerExceptionHandler()
+	defer this.registerExceptionHandler()
 	this.registerRedis()
 	this.registerDb()
 	this.registerProvider()
-	this.registerSession()
-	this.RegisterValidation()
+	this.registerValidation()
 }
