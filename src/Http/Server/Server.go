@@ -85,6 +85,7 @@ func (this *Server) RegisterRouters(register func(engine *gin.Engine)) *Server {
 }
 
 func (this *Server) Start(addr ...string) {
+	this.initGinEngine()
 	err := this.ginEngine.Run(addr...)
 
 	if err != nil {
