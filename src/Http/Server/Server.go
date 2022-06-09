@@ -21,8 +21,8 @@ func NewHttpSerer(app *app.App) *Server {
 	server := &Server{
 		App: app,
 	}
-	server.initGinEngine()
 	server.RegisterSession()
+	server.initGinEngine()
 
 	return server
 }
