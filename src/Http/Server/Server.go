@@ -21,10 +21,15 @@ func NewHttpSerer(app *app.App) *Server {
 	server := &Server{
 		App: app,
 	}
-	server.RegisterSession()
 	server.initGinEngine()
+	server.RegisterSession()
 
 	return server
+}
+
+func (this *Server) initGinEngine() {
+	gin.SetMode(this.App.Config.App.Env)
+	this.ginEngine = gin.Default()
 }
 
 func (this *Server) RegisterSession() {
@@ -64,14 +69,10 @@ func (this *Server) RegisterSession() {
 	})
 }
 
-func (this *Server) initGinEngine() {
-	gin.SetMode(this.App.Config.App.Env)
-	this.ginEngine = gin.Default()
+func (this *Server) RegisterRouters(register func(engine *gin.Engine)) *Server {
 	this.ginEngine.Use(middleware.ExceptionMiddleware{HandlerExceptions: this.App.HandlerExceptions}.Process)
 	this.ginEngine.Use(middleware.NewSessionMiddleware(this.Session).Process)
-}
 
-func (this *Server) RegisterRouters(register func(engine *gin.Engine)) *Server {
 	register(this.ginEngine)
 	return this
 }
