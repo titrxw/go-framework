@@ -35,11 +35,10 @@ func NewApp() *App {
 	return &App{}
 }
 
-func (this *App) registerExceptionHandler() func() {
+func (this *App) registerExceptionHandler() {
 	this.HandlerExceptions = &exception.HandlerExceptions{
 		Logger: this.LoggerFactory.Channel("default"),
 	}
-	return this.HandlerExceptions.RegisterExceptionHandle()
 }
 
 func (this *App) InitConfig(obj interface{}) {
@@ -127,7 +126,7 @@ func (this *App) Bootstrap() {
 	this.registerConfig()
 	this.registerContainer()
 	this.registerLogger()
-	defer this.registerExceptionHandler()
+	this.registerExceptionHandler()
 	this.registerRedis()
 	this.registerDb()
 	this.registerProvider()
