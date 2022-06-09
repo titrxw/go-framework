@@ -1,8 +1,8 @@
 package server
 
 import (
-	"github.com/alexedwards/scs/mysqlstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/alexedwards/scs/v2/memstore"
 	"github.com/gin-gonic/gin"
 	app "github.com/titrxw/go-framework/src/App"
 	middleware "github.com/titrxw/go-framework/src/Http/Middleware"
@@ -60,16 +60,7 @@ func (this *Server) RegisterSession() {
 	}
 
 	this.Session.SetStorageResolver(func() scs.Store {
-		sessionDb := this.App.Config.Session.DbConnection
-		if sessionDb == "" {
-			sessionDb = "default"
-		}
-		db, err := this.App.DbFactory.Channel(sessionDb).DB()
-		if err != nil {
-			panic(err)
-		}
-
-		return mysqlstore.New(db)
+		return memstore.New()
 	})
 }
 
