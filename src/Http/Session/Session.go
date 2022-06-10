@@ -15,7 +15,7 @@ type Session struct {
 	storageResolver func() scs.Store
 }
 
-func NewSession(sessionConfig *config.Session, cookieConfig *config.Cookie) *Session {
+func NewSession(sessionConfig config.Session, cookieConfig config.Cookie) *Session {
 	session := &Session{
 		SessionManager: *scs.New(),
 	}
