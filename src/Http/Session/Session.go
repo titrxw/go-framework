@@ -3,13 +3,58 @@ package session
 import (
 	"context"
 	"github.com/alexedwards/scs/v2"
+	"github.com/alexedwards/scs/v2/memstore"
 	"github.com/gin-gonic/gin"
+	config "github.com/titrxw/go-framework/src/Core/Config"
+	"net/http"
 	"time"
 )
 
 type Session struct {
 	scs.SessionManager
 	storageResolver func() scs.Store
+}
+
+func NewSession(sessionConfig *config.Session, cookieConfig *config.Cookie) *Session {
+	session := &Session{
+		SessionManager: *scs.New(),
+	}
+	session.ErrorFunc = func(writer http.ResponseWriter, request *http.Request, err error) {
+
+	}
+	if sessionConfig.Lifetime > 0 {
+		session.Lifetime = sessionConfig.Lifetime
+	}
+	if sessionConfig.IdleTimeout > 0 {
+		session.IdleTimeout = sessionConfig.IdleTimeout
+	}
+	if cookieConfig.Name != "" {
+		session.Cookie.Name = cookieConfig.Name
+	}
+	if cookieConfig.Domain != "" {
+		session.Cookie.Domain = cookieConfig.Domain
+	}
+	if cookieConfig.Path != "" {
+		session.Cookie.Path = cookieConfig.Path
+	}
+	session.Cookie.HttpOnly = cookieConfig.HttpOnly
+	session.Cookie.Persist = cookieConfig.Persist
+	session.Cookie.Secure = cookieConfig.Secure
+	if cookieConfig.SameSite == "Lax" {
+		session.Cookie.SameSite = http.SameSiteLaxMode
+	} else if cookieConfig.SameSite == "Strict" {
+		session.Cookie.SameSite = http.SameSiteStrictMode
+	} else if cookieConfig.SameSite == "None" {
+		session.Cookie.SameSite = http.SameSiteNoneMode
+	} else {
+		session.Cookie.SameSite = http.SameSiteDefaultMode
+	}
+
+	session.SetStorageResolver(func() scs.Store {
+		return memstore.New()
+	})
+
+	return session
 }
 
 func (this *Session) getContext(ctx *gin.Context) context.Context {

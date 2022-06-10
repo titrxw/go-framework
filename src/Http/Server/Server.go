@@ -1,19 +1,15 @@
 package server
 
 import (
-	"github.com/alexedwards/scs/v2"
-	"github.com/alexedwards/scs/v2/memstore"
 	"github.com/gin-gonic/gin"
 	app "github.com/titrxw/go-framework/src/App"
-	middleware "github.com/titrxw/go-framework/src/Http/Middleware"
 	session "github.com/titrxw/go-framework/src/Http/Session"
-	"net/http"
 )
 
 type Server struct {
 	App *app.App
 
-	ginEngine *gin.Engine
+	GinEngine *gin.Engine
 	Session   *session.Session
 }
 
@@ -22,63 +18,22 @@ func NewHttpSerer(app *app.App) *Server {
 		App: app,
 	}
 	server.initGinEngine()
-	server.RegisterSession()
 
 	return server
 }
 
 func (this *Server) initGinEngine() {
 	gin.SetMode(this.App.Config.App.Env)
-	this.ginEngine = gin.Default()
-}
-
-func (this *Server) RegisterSession() {
-	this.Session = &session.Session{
-		SessionManager: *scs.New(),
-	}
-	this.Session.ErrorFunc = func(writer http.ResponseWriter, request *http.Request, err error) {
-
-	}
-	if this.App.Config.Session.Lifetime > 0 {
-		this.Session.Lifetime = this.App.Config.Session.Lifetime
-	}
-	if this.App.Config.Cookie.Name != "" {
-		this.Session.Cookie.Name = this.App.Config.Cookie.Name
-	}
-	if this.App.Config.Cookie.Domain != "" {
-		this.Session.Cookie.Domain = this.App.Config.Cookie.Domain
-	}
-	if this.App.Config.Cookie.Path != "" {
-		this.Session.Cookie.Path = this.App.Config.Cookie.Path
-	}
-	this.Session.Cookie.HttpOnly = this.App.Config.Cookie.HttpOnly
-	this.Session.Cookie.Persist = this.App.Config.Cookie.Persist
-	this.Session.Cookie.Secure = this.App.Config.Cookie.Secure
-	if this.App.Config.Cookie.SameSite == "Lax" {
-		this.Session.Cookie.SameSite = http.SameSiteLaxMode
-	} else if this.App.Config.Cookie.SameSite == "Strict" {
-		this.Session.Cookie.SameSite = http.SameSiteStrictMode
-	} else if this.App.Config.Cookie.SameSite == "None" {
-		this.Session.Cookie.SameSite = http.SameSiteNoneMode
-	} else {
-		this.Session.Cookie.SameSite = http.SameSiteDefaultMode
-	}
-
-	this.Session.SetStorageResolver(func() scs.Store {
-		return memstore.New()
-	})
+	this.GinEngine = gin.Default()
 }
 
 func (this *Server) RegisterRouters(register func(engine *gin.Engine)) *Server {
-	this.ginEngine.Use(middleware.ExceptionMiddleware{HandlerExceptions: this.App.HandlerExceptions}.Process)
-	this.ginEngine.Use(middleware.NewSessionMiddleware(this.Session).Process)
-
-	register(this.ginEngine)
+	register(this.GinEngine)
 	return this
 }
 
 func (this *Server) Start(addr ...string) {
-	err := this.ginEngine.Run(addr...)
+	err := this.GinEngine.Run(addr...)
 
 	if err != nil {
 		panic(err)
