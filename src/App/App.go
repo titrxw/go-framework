@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/asaskevich/EventBus"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
@@ -23,6 +24,7 @@ type App struct {
 	HandlerExceptions *exception.HandlerExceptions
 	Config            *appconfig.Config
 	Container         container.Container
+	Event             EventBus.Bus
 	RedisFactory      *redis.RedisFactory
 	DbFactory         *database.DatabaseFactory
 	LoggerFactory     *logger.LoggerFactory
@@ -63,6 +65,10 @@ func (this *App) registerConfig() {
 
 func (this *App) registerContainer() {
 	this.Container = container.New()
+}
+
+func (this *App) registerEvent() {
+	this.Event = EventBus.New()
 }
 
 func (this *App) registerLogger() {
@@ -125,6 +131,7 @@ func (this *App) Bootstrap() {
 	this.registerConsole()
 	this.registerConfig()
 	this.registerContainer()
+	this.registerEvent()
 	this.registerLogger()
 	this.registerExceptionHandler()
 	this.registerRedis()
