@@ -22,18 +22,18 @@ func NewHttpSerer(app *app.App) *Server {
 	return server
 }
 
-func (this *Server) initGinEngine() {
-	gin.SetMode(this.App.Config.App.Env)
-	this.GinEngine = gin.Default()
+func (server *Server) initGinEngine() {
+	gin.SetMode(server.App.Config.App.Env)
+	server.GinEngine = gin.Default()
 }
 
-func (this *Server) RegisterRouters(register func(engine *gin.Engine)) *Server {
-	register(this.GinEngine)
-	return this
+func (server *Server) RegisterRouters(register func(engine *gin.Engine)) *Server {
+	register(server.GinEngine)
+	return server
 }
 
-func (this *Server) Start(addr ...string) {
-	err := this.GinEngine.Run(addr...)
+func (server *Server) Start(addr ...string) {
+	err := server.GinEngine.Run(addr...)
 
 	if err != nil {
 		panic(err)

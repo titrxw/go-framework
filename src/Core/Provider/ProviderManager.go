@@ -10,8 +10,8 @@ type ProviderManager struct {
 	DbFactory *database.DatabaseFactory
 }
 
-func (this *ProviderManager) MakeProvider(abstract ProviderInterface) ProviderInterface {
-	abstract.SetContainer(this.Container)
-	abstract.SetDbFactory(this.DbFactory)
+func (providerManager *ProviderManager) MakeProvider(abstract ProviderInterface) ProviderInterface {
+	abstract.SetContainer(providerManager.Container)
+	abstract.SetDbFactory(providerManager.DbFactory)
 	return abstract
 }

@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/titrxw/go-framework/src/Http/Session"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	session "github.com/titrxw/go-framework/src/Http/Session"
 )
 
 type SessionMiddleware struct {
@@ -16,10 +17,10 @@ func NewSessionMiddleware(appSession *session.Session) *SessionMiddleware {
 	return &SessionMiddleware{Session: appSession}
 }
 
-func (this SessionMiddleware) Process(ctx *gin.Context) {
-	err := this.Session.Start(ctx)
+func (sessionMiddleware SessionMiddleware) Process(ctx *gin.Context) {
+	err := sessionMiddleware.Session.Start(ctx)
 	if err != nil {
-		this.JsonResponseWithError(ctx, err, http.StatusInternalServerError)
+		sessionMiddleware.JsonResponseWithError(ctx, err, http.StatusInternalServerError)
 		return
 	}
 

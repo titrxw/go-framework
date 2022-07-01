@@ -3,8 +3,8 @@ module github.com/titrxw/go-framework
 go 1.18
 
 require (
-	github.com/alexedwards/scs/mysqlstore v0.0.0-20211203064041-370cc303b69f
 	github.com/alexedwards/scs/v2 v2.5.0
+	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
@@ -12,6 +12,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golobby/container/v3 v3.0.2
 	github.com/gookit/config/v2 v2.0.27
+	github.com/jedib0t/go-pretty/v6 v6.3.2
 	github.com/spf13/cobra v1.4.0
 	go.uber.org/zap v1.19.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
@@ -20,7 +21,6 @@ require (
 )
 
 require (
-	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -29,7 +29,6 @@ require (
 	github.com/gookit/goutil v0.3.15 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.3.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect

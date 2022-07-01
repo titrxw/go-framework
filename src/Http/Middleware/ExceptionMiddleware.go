@@ -2,10 +2,11 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	exception "github.com/titrxw/go-framework/src/Core/Exception"
 	"io"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	exception "github.com/titrxw/go-framework/src/Core/Exception"
 )
 
 type ExceptionRecoverLogger struct {
@@ -13,8 +14,8 @@ type ExceptionRecoverLogger struct {
 	HandlerExceptions *exception.HandlerExceptions
 }
 
-func (this *ExceptionRecoverLogger) Write(p []byte) (n int, err error) {
-	this.HandlerExceptions.GetExceptionHandler().Reporter(this.HandlerExceptions.Logger, fmt.Errorf("%v", err), string(this.HandlerExceptions.Stack(4)))
+func (exceptionRecoverLogger *ExceptionRecoverLogger) Write(p []byte) (n int, err error) {
+	exceptionRecoverLogger.HandlerExceptions.GetExceptionHandler().Reporter(exceptionRecoverLogger.HandlerExceptions.Logger, fmt.Errorf("%v", err), string(exceptionRecoverLogger.HandlerExceptions.Stack(4)))
 	return len(p), nil
 }
 
@@ -23,14 +24,14 @@ type ExceptionMiddleware struct {
 	HandlerExceptions *exception.HandlerExceptions
 }
 
-func (this ExceptionMiddleware) Process(ctx *gin.Context) {
+func (exceptionMiddleware ExceptionMiddleware) Process(ctx *gin.Context) {
 	gin.CustomRecoveryWithWriter(&ExceptionRecoverLogger{
-		HandlerExceptions: this.HandlerExceptions,
+		HandlerExceptions: exceptionMiddleware.HandlerExceptions,
 	}, func(ctx *gin.Context, err interface{}) {
 		if gin.Mode() == gin.DebugMode {
-			this.JsonResponseWithError(ctx, string(this.HandlerExceptions.Stack(4)), http.StatusInternalServerError)
+			exceptionMiddleware.JsonResponseWithError(ctx, string(exceptionMiddleware.HandlerExceptions.Stack(4)), http.StatusInternalServerError)
 		} else {
-			this.JsonResponseWithError(ctx, "系统内部错误", http.StatusInternalServerError)
+			exceptionMiddleware.JsonResponseWithError(ctx, "系统内部错误", http.StatusInternalServerError)
 		}
 	})
 }

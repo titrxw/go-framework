@@ -12,16 +12,16 @@ type ProviderAbstract struct {
 	DbFactory *database.DatabaseFactory
 }
 
-func (this *ProviderAbstract) SetContainer(container container.Container) {
-	this.Container = container
+func (providerAbstract *ProviderAbstract) SetContainer(container container.Container) {
+	providerAbstract.Container = container
 }
 
-func (this *ProviderAbstract) SetDbFactory(DbFactory *database.DatabaseFactory) {
-	this.DbFactory = DbFactory
+func (providerAbstract *ProviderAbstract) SetDbFactory(DbFactory *database.DatabaseFactory) {
+	providerAbstract.DbFactory = DbFactory
 }
 
-func (this *ProviderAbstract) RegisterAutoPanic(name string, resolver interface{}) {
-	err := this.Container.NamedSingleton(name, resolver)
+func (providerAbstract *ProviderAbstract) RegisterAutoPanic(name string, resolver interface{}) {
+	err := providerAbstract.Container.NamedSingleton(name, resolver)
 	if err != nil {
 		panic(err)
 	}

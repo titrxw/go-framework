@@ -7,6 +7,6 @@ type CommandAbstract struct {
 	CommandInterface
 }
 
-func (this *CommandAbstract) Configure(command *cobra.Command) {
+func (commandAbstract *CommandAbstract) Configure(command *cobra.Command) {
 
 }

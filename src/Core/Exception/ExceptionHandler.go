@@ -8,10 +8,10 @@ type ExceptionHandler struct {
 	ExceptionHandlerInterface
 }
 
-func (this *ExceptionHandler) Reporter(logger *zap.Logger, err error, trace string) {
+func (exceptionHandler *ExceptionHandler) Reporter(logger *zap.Logger, err error, trace string) {
 	logger.Debug(err.Error())
 }
 
-func (this *ExceptionHandler) Handle(err error, trace string) {
+func (exceptionHandler *ExceptionHandler) Handle(err error, trace string) {
 
 }

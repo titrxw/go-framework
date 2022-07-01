@@ -19,16 +19,16 @@ func NewLoggerFactory() *LoggerFactory {
 	}
 }
 
-func (this *LoggerFactory) Channel(channel string) *zap.Logger {
-	logger, exists := this.loggerMap[channel]
+func (loggerFactory *LoggerFactory) Channel(channel string) *zap.Logger {
+	logger, exists := loggerFactory.loggerMap[channel]
 	if !exists {
-		return this.Channel(DEFAULT_CHANNEL)
+		return loggerFactory.Channel(DEFAULT_CHANNEL)
 	}
 
 	return logger
 }
 
-func (this *LoggerFactory) RegisterLogger(log config.Log) *zap.Logger {
+func (loggerFactory *LoggerFactory) RegisterLogger(log config.Log) *zap.Logger {
 	maxSize := log.MaxSize
 	maxAge := log.MaxDays
 	if maxSize <= 0 {
@@ -88,8 +88,8 @@ func (this *LoggerFactory) RegisterLogger(log config.Log) *zap.Logger {
 	return zap.New(core)
 }
 
-func (this *LoggerFactory) Register(maps map[string]config.Log) {
+func (loggerFactory *LoggerFactory) Register(maps map[string]config.Log) {
 	for key, value := range maps {
-		this.loggerMap[key] = this.RegisterLogger(value)
+		loggerFactory.loggerMap[key] = loggerFactory.RegisterLogger(value)
 	}
 }

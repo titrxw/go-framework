@@ -37,13 +37,13 @@ func NewApp() *App {
 	return &App{}
 }
 
-func (this *App) registerExceptionHandler() {
-	this.HandlerExceptions = &exception.HandlerExceptions{
-		Logger: this.LoggerFactory.Channel("default"),
+func (app *App) registerExceptionHandler() {
+	app.HandlerExceptions = &exception.HandlerExceptions{
+		Logger: app.LoggerFactory.Channel("default"),
 	}
 }
 
-func (this *App) InitConfig(obj interface{}) {
+func (app *App) InitConfig(obj interface{}) {
 	config.ClearAll()
 	config.WithOptions(config.ParseEnv)
 	config.AddDriver(yaml.Driver)
@@ -58,56 +58,56 @@ func (this *App) InitConfig(obj interface{}) {
 	}
 }
 
-func (this *App) registerConfig() {
-	this.InitConfig(&this.Config)
-	this.Name = this.Config.App.Name
+func (app *App) registerConfig() {
+	app.InitConfig(&app.Config)
+	app.Name = app.Config.App.Name
 }
 
-func (this *App) registerContainer() {
-	this.Container = container.New()
+func (app *App) registerContainer() {
+	app.Container = container.New()
 }
 
-func (this *App) registerEvent() {
-	this.Event = EventBus.New()
+func (app *App) registerEvent() {
+	app.Event = EventBus.New()
 }
 
-func (this *App) registerLogger() {
-	this.LoggerFactory = logger.NewLoggerFactory()
-	this.LoggerFactory.Register(this.Config.LogMap)
+func (app *App) registerLogger() {
+	app.LoggerFactory = logger.NewLoggerFactory()
+	app.LoggerFactory.Register(app.Config.LogMap)
 }
 
-func (this *App) registerRedis() {
-	this.RedisFactory = redis.NewRedisFactory()
-	this.RedisFactory.Register(this.Config.RedisMap)
+func (app *App) registerRedis() {
+	app.RedisFactory = redis.NewRedisFactory()
+	app.RedisFactory.Register(app.Config.RedisMap)
 }
 
-func (this *App) registerDb() {
-	logger := this.LoggerFactory.RegisterLogger(appconfig.Log{
+func (app *App) registerDb() {
+	logger := app.LoggerFactory.RegisterLogger(appconfig.Log{
 		Path:    "db.log",
 		Level:   "info",
 		MaxDays: 7,
 	})
 
-	this.DbFactory = database.NewDatabaseFactory(logger)
-	this.DbFactory.Register(this.Config.DatabaseMap)
+	app.DbFactory = database.NewDatabaseFactory(logger)
+	app.DbFactory.Register(app.Config.DatabaseMap)
 }
 
-func (this *App) registerValidation() {
+func (app *App) registerValidation() {
 	uni := ut.New(zh.New())
-	lang := this.Config.App.Lang
+	lang := app.Config.App.Lang
 	if lang == "" {
 		lang = "zh"
 	}
 
-	this.Translator, _ = uni.GetTranslator(lang)
-	_ = zh_translations.RegisterDefaultTranslations(binding.Validator.Engine().(*validator.Validate), this.Translator)
+	app.Translator, _ = uni.GetTranslator(lang)
+	_ = zh_translations.RegisterDefaultTranslations(binding.Validator.Engine().(*validator.Validate), app.Translator)
 }
 
-func (this *App) registerProvider() {
-	err := this.Container.NamedSingleton("provider_manager", func() *provider.ProviderManager {
+func (app *App) registerProvider() {
+	err := app.Container.NamedSingleton("provider_manager", func() *provider.ProviderManager {
 		return &provider.ProviderManager{
-			Container: this.Container,
-			DbFactory: this.DbFactory,
+			Container: app.Container,
+			DbFactory: app.DbFactory,
 		}
 	})
 	if err != nil {
@@ -115,27 +115,27 @@ func (this *App) registerProvider() {
 	}
 
 	var providerManager *provider.ProviderManager
-	err = this.Container.NamedResolve(&providerManager, "provider_manager")
+	err = app.Container.NamedResolve(&providerManager, "provider_manager")
 	if err != nil {
 		panic(err)
 	}
 
-	this.ProviderManager = providerManager
+	app.ProviderManager = providerManager
 }
 
-func (this *App) registerConsole() {
-	this.Console = console.NewConsole()
+func (app *App) registerConsole() {
+	app.Console = console.NewConsole()
 }
 
-func (this *App) Bootstrap() {
-	this.registerConsole()
-	this.registerConfig()
-	this.registerContainer()
-	this.registerEvent()
-	this.registerLogger()
-	this.registerExceptionHandler()
-	this.registerRedis()
-	this.registerDb()
-	this.registerProvider()
-	this.registerValidation()
+func (app *App) Bootstrap() {
+	app.registerConsole()
+	app.registerConfig()
+	app.registerContainer()
+	app.registerEvent()
+	app.registerLogger()
+	app.registerExceptionHandler()
+	app.registerRedis()
+	app.registerDb()
+	app.registerProvider()
+	app.registerValidation()
 }

@@ -12,7 +12,7 @@ func NewConsole() *Console {
 	}
 }
 
-func (this *Console) RegisterCommand(command CommandInterface) {
+func (console *Console) RegisterCommand(command CommandInterface) {
 	handler := &cobra.Command{
 		Use:   command.GetName(),
 		Short: command.GetShortCut(),
@@ -22,9 +22,9 @@ func (this *Console) RegisterCommand(command CommandInterface) {
 
 	command.Configure(handler)
 
-	this.Handler.AddCommand(handler)
+	console.Handler.AddCommand(handler)
 }
 
-func (this *Console) Run() {
-	this.Handler.Execute()
+func (console *Console) Run() {
+	console.Handler.Execute()
 }

@@ -12,18 +12,18 @@ type StartCommand struct {
 	Server *server.Server
 }
 
-func (this *StartCommand) GetName() string {
+func (startCommand *StartCommand) GetName() string {
 	return "server:start"
 }
 
-func (this *StartCommand) GetShortCut() string {
+func (startCommand *StartCommand) GetShortCut() string {
 	return ""
 }
 
-func (this *StartCommand) GetDescription() string {
+func (startCommand *StartCommand) GetDescription() string {
 	return ""
 }
 
-func (this *StartCommand) Handle(cmd *cobra.Command, args []string) {
-	this.Server.Start(args[0] + ":" + args[1])
+func (startCommand *StartCommand) Handle(cmd *cobra.Command, args []string) {
+	startCommand.Server.Start(args[0] + ":" + args[1])
 }

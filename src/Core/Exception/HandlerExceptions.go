@@ -3,9 +3,10 @@ package exception
 import (
 	"bytes"
 	"fmt"
-	"go.uber.org/zap"
 	"io/ioutil"
 	"runtime"
+
+	"go.uber.org/zap"
 )
 
 var (
@@ -20,28 +21,28 @@ type HandlerExceptions struct {
 	Logger           *zap.Logger
 }
 
-func (this *HandlerExceptions) SetExceptionHandler(exceptionHandler ExceptionHandlerInterface) {
-	this.ExceptionHandler = exceptionHandler
+func (handlerExceptions *HandlerExceptions) SetExceptionHandler(exceptionHandler ExceptionHandlerInterface) {
+	handlerExceptions.ExceptionHandler = exceptionHandler
 }
 
-func (this *HandlerExceptions) GetExceptionHandler() ExceptionHandlerInterface {
-	if this.ExceptionHandler == nil {
-		this.ExceptionHandler = new(ExceptionHandler)
+func (handlerExceptions *HandlerExceptions) GetExceptionHandler() ExceptionHandlerInterface {
+	if handlerExceptions.ExceptionHandler == nil {
+		handlerExceptions.ExceptionHandler = new(ExceptionHandler)
 	}
-	return this.ExceptionHandler
+	return handlerExceptions.ExceptionHandler
 }
 
-func (this *HandlerExceptions) RegisterExceptionHandle() func() {
+func (handlerExceptions *HandlerExceptions) RegisterExceptionHandle() func() {
 	return func() {
 		if err := recover(); err != nil {
-			this.GetExceptionHandler().Reporter(this.Logger, fmt.Errorf("%v", err), string(this.Stack(4)))
-			this.GetExceptionHandler().Handle(fmt.Errorf("%v", err), string(this.Stack(4)))
+			handlerExceptions.GetExceptionHandler().Reporter(handlerExceptions.Logger, fmt.Errorf("%v", err), string(handlerExceptions.Stack(4)))
+			handlerExceptions.GetExceptionHandler().Handle(fmt.Errorf("%v", err), string(handlerExceptions.Stack(4)))
 		}
 	}
 }
 
 //以下代码来自gin recover
-func (this *HandlerExceptions) Stack(skip int) []byte {
+func (handlerExceptions *HandlerExceptions) Stack(skip int) []byte {
 	buf := new(bytes.Buffer) // the returned data
 	// As we loop, we open files and read them. These variables record the currently
 	// loaded file.
@@ -62,13 +63,13 @@ func (this *HandlerExceptions) Stack(skip int) []byte {
 			lines = bytes.Split(data, []byte{'\n'})
 			lastFile = file
 		}
-		fmt.Fprintf(buf, "\t%s: %s\n", this.function(pc), this.source(lines, line))
+		fmt.Fprintf(buf, "\t%s: %s\n", handlerExceptions.function(pc), handlerExceptions.source(lines, line))
 	}
 	return buf.Bytes()
 }
 
 // source returns a space-trimmed slice of the n'th line.
-func (this *HandlerExceptions) source(lines [][]byte, n int) []byte {
+func (handlerExceptions *HandlerExceptions) source(lines [][]byte, n int) []byte {
 	n-- // in stack trace, lines are 1-indexed but our array is 0-indexed
 	if n < 0 || n >= len(lines) {
 		return dunno
@@ -77,7 +78,7 @@ func (this *HandlerExceptions) source(lines [][]byte, n int) []byte {
 }
 
 // function returns, if possible, the name of the function containing the PC.
-func (this *HandlerExceptions) function(pc uintptr) []byte {
+func (handlerExceptions *HandlerExceptions) function(pc uintptr) []byte {
 	fn := runtime.FuncForPC(pc)
 	if fn == nil {
 		return dunno
